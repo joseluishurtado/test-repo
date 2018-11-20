@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>Reproducible Research: Peer Assessment 1</title>
+
+<script src="test_pa1_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="test_pa1_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="test_pa1_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="test_pa1_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="test_pa1_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="test_pa1_files/navigation-1.1/tabsets.js"></script>
+<link href="test_pa1_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="test_pa1_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Reproducible Research: Peer Assessment 1</h1>
+
+</div>
+
+
+<div id="reproducible-research---activity-monitoring-data" class="section level1">
+<h1><strong>Reproducible Research - Activity Monitoring Data</strong></h1>
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE)</code></pre>
+</div>
+<div id="section" class="section level1">
+<h1></h1>
+<p>This is the R Markdown file for the Project</p>
+<div id="loading-and-preprocessing-the-data" class="section level2">
+<h2><strong>1. Loading and preprocessing the data</strong></h2>
+<p>Load library that will be used throughout the code</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## -- Attaching packages ---- tidyverse 1.2.1 --</code></pre>
+<pre><code>## v ggplot2 3.0.0     v purrr   0.2.5
+## v tibble  1.4.2     v dplyr   0.7.6
+## v tidyr   0.8.1     v stringr 1.3.1
+## v readr   1.1.1     v forcats 0.3.0</code></pre>
+<pre><code>## -- Conflicts ------- tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<p>1.1 Load the data (i.e. read.csv())</p>
+<pre class="r"><code>x &lt;- read.csv(&quot;activity.csv&quot;)
+head(x)</code></pre>
+<pre><code>##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25</code></pre>
+<p>1.2 Preprocess the data</p>
+<pre class="r"><code>x$date &lt;- as.Date(x$date)# convert to Date
+str(x)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Date, format: &quot;2012-10-01&quot; &quot;2012-10-01&quot; ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...</code></pre>
+</div>
+<div id="what-is-the-mean-total-number-of-steps-taken-per-day" class="section level2">
+<h2><strong>2. What is the mean total number of steps taken per day?</strong></h2>
+<p>2.1 Make a histogram of the total number of steps taken each day</p>
+<p>2.2 Calculate and report the <em>mean</em> and <em>median</em> total number of steps taken per day</p>
+<ul>
+<li><p>The code below shows both the histogram as well as the mean and median</p></li>
+<li><p>First, we apply some data transformations:</p></li>
+</ul>
+<pre class="r"><code>x1 &lt;- group_by(x,date)
+x2 &lt;- summarize(x1, steps = sum(steps, na.rm = TRUE))
+head(x2)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   date       steps
+##   &lt;date&gt;     &lt;int&gt;
+## 1 2012-10-01     0
+## 2 2012-10-02   126
+## 3 2012-10-03 11352
+## 4 2012-10-04 12116
+## 5 2012-10-05 13294
+## 6 2012-10-06 15420</code></pre>
+<ul>
+<li>Then, we plot</li>
+</ul>
+<pre class="r"><code>ggplot(data = x2, aes(x = steps, color = I(&#39;black&#39;), fill = I(&#39;grey99&#39;)))+
+  geom_histogram(bins = 12) +
+  ggtitle(&quot;Histogram&quot;) +
+  labs(x = &quot;Steps per Day&quot;, y = &quot;Number of Days&quot;, subtitle = &quot;Distribution of Number of Steps per Day&quot;) +
+  geom_vline(aes(xintercept = mean(steps, na.rm = TRUE), color = &quot;red&quot;)) +
+  geom_text(mapping = aes(label = round(mean(steps, na.rm = TRUE),0),y = -1, x = mean(steps, na.rm = TRUE), color = &#39;red&#39;, hjust = 1.1)) +
+  geom_text(mapping = aes(label = &quot;Mean&quot;, y = -0.3, x = mean(steps, na.rm = TRUE), color = &#39;red&#39;, hjust = 1.1)) +
+  geom_vline(aes(xintercept = median(steps, na.rm = TRUE), color = &quot;blue&quot;)) +
+  geom_text(mapping = aes(label = round(median(steps, na.rm = TRUE),0),y = -1, x = median(steps, na.rm = TRUE), color = &#39;blue&#39;, hjust = -0.1)) +
+  geom_text(mapping = aes(label = &quot;Median&quot;, y = -0.3, x = median(steps, na.rm = TRUE), color = &#39;blue&#39;, hjust = -0.1))</code></pre>
+<p><img src="test_pa1_files/figure-html/unnamed-chunk-6-1.png" /><!-- --></p>
+<p><strong>Mean of steps taken each day:</strong> 9354</p>
+<p><strong>Median of steps taken each day:</strong> 10395</p>
+</div>
+<div id="what-is-the-average-daily-activity-pattern" class="section level2">
+<h2><strong>3. What is the average daily activity pattern?</strong></h2>
+<p>3.1 Make a time series plot (i.e. type = “l”) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)</p>
+<p>3.2 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?</p>
+<p>First, some data transformations</p>
+<pre class="r"><code>x3 &lt;- group_by(x,interval)
+x4 &lt;- summarize(x3, total_steps = sum(steps, na.rm = TRUE), mean_steps = mean(steps, na.rm = TRUE))</code></pre>
+<p>Then, generating the time series plot</p>
+<pre class="r"><code>ggplot(data = x4) + 
+  geom_line(mapping = aes(x = interval, y = mean_steps, color = I(&#39;blue&#39;))) +
+  ggtitle(&quot;Time Series Chart&quot;) + 
+  labs(x = &quot;Time Interval&quot;, y = &quot;Average # of Steps&quot;, subtitle = &quot;Average # of Steps by Time Interval&quot;) +
+  geom_vline(aes(xintercept = interval[mean_steps == max(mean_steps)])) +
+  geom_text(mapping = aes(label = interval[mean_steps == max(mean_steps)],y = -8, x = interval[mean_steps == max(mean_steps)], hjust = 1.2)) +
+  geom_text(mapping = aes(label = &quot;Interval&quot;, y = 0, x = interval[mean_steps == max(mean_steps)], hjust = 1.1))</code></pre>
+<p><img src="test_pa1_files/figure-html/unnamed-chunk-8-1.png" /><!-- --></p>
+<p>The <strong>5-minute interval</strong> that contains the maximum number of steps (as shown in the chart) is the <strong>8:35</strong></p>
+</div>
+<div id="imputing-missing-values" class="section level2">
+<h2><strong>4. Imputing Missing Values</strong></h2>
+<p>4.1 Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)</p>
+<pre class="r"><code>sum(is.na(x$steps))</code></pre>
+<pre><code>## [1] 2304</code></pre>
+<p>There are <strong>2304</strong> rows with missing values</p>
+<p>4.2 Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.</p>
+<p>First, we explore the data to see where the missing values appear to be</p>
+<pre class="r"><code>s  &lt;- split(x$steps, x$date)
+s1 &lt;- aggregate(steps ~ date, data = x,  function(y) {sum(is.na(y))}, na.action = NULL)
+head(s1,10)</code></pre>
+<pre><code>##          date steps
+## 1  2012-10-01   288
+## 2  2012-10-02     0
+## 3  2012-10-03     0
+## 4  2012-10-04     0
+## 5  2012-10-05     0
+## 6  2012-10-06     0
+## 7  2012-10-07     0
+## 8  2012-10-08   288
+## 9  2012-10-09     0
+## 10 2012-10-10     0</code></pre>
+<p>Based on that, missing values correspond to entire days. So, to impute missing values:</p>
+<ol style="list-style-type: decimal">
+<li><p>First, I identify which weekday correspond to the missing value</p></li>
+<li><p>Then, I obtain the average for same weekdays without missing values</p></li>
+<li><p>Finally, I create a new dataframe, imputing the resulting value for the corresponding weekday and interval on those ones with null values</p></li>
+</ol>
+<p>4.3 Create a new dataset that is equal to the original dataset but with the missing data filled in.</p>
+<pre class="r"><code>x$weekday &lt;- weekdays(x$date)
+x_notna &lt;- subset(x, !is.na(x$steps))
+x_notna &lt;- group_by(x_notna, weekday, interval) %&gt;%
+  summarize(steps = round(mean(steps),0))
+
+
+x_new &lt;- left_join(x, x_notna, by = c(&quot;interval&quot;, &quot;weekday&quot;)) %&gt;%
+  mutate(steps.x = ifelse(is.na(steps.x),steps.y, steps.x)) %&gt;%
+  select(-(steps.y)) %&gt;%
+  rename(steps = steps.x)
+
+head(x_new)</code></pre>
+<pre><code>##   steps       date interval weekday
+## 1     1 2012-10-01        0  Monday
+## 2     0 2012-10-01        5  Monday
+## 3     0 2012-10-01       10  Monday
+## 4     0 2012-10-01       15  Monday
+## 5     0 2012-10-01       20  Monday
+## 6     5 2012-10-01       25  Monday</code></pre>
+<p>4.4 Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?</p>
+<p>With the new data frame, I proceed to do the data transformations before plotting</p>
+<pre class="r"><code>x1_new &lt;- group_by(x_new,date)
+x2_new &lt;- summarize(x1_new, steps = sum(steps, na.rm = TRUE))
+head(x2_new)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   date       steps
+##   &lt;date&gt;     &lt;dbl&gt;
+## 1 2012-10-01  9978
+## 2 2012-10-02   126
+## 3 2012-10-03 11352
+## 4 2012-10-04 12116
+## 5 2012-10-05 13294
+## 6 2012-10-06 15420</code></pre>
+<p>Now we plot</p>
+<pre class="r"><code>ggplot(data = x2_new, aes(x = steps, color = I(&#39;black&#39;), fill = I(&#39;grey99&#39;)))+
+  geom_histogram(bins = 12) +
+  ggtitle(&quot;Histogram&quot;) +
+  labs(x = &quot;Steps per Day&quot;, y = &quot;Number of Days&quot;, subtitle = &quot;Distribution of Number of Steps per Day - With Imputed Values&quot;) +
+  geom_vline(aes(xintercept = mean(steps, na.rm = TRUE), color = &quot;red&quot;)) +
+  geom_text(mapping = aes(label = round(mean(steps, na.rm = TRUE),0),y = -1, x = mean(steps, na.rm = TRUE), color = &#39;red&#39;, hjust = 1.1)) +
+  geom_text(mapping = aes(label = &quot;Mean&quot;, y = -0.3, x = mean(steps, na.rm = TRUE), color = &#39;red&#39;, hjust = 1.1)) +
+  geom_vline(aes(xintercept = median(steps, na.rm = TRUE), color = &quot;blue&quot;)) +
+  geom_text(mapping = aes(label = round(median(steps, na.rm = TRUE),0),y = -1, x = median(steps, na.rm = TRUE), color = &#39;blue&#39;, hjust = -0.1)) +
+  geom_text(mapping = aes(label = &quot;Median&quot;, y = -0.3, x = median(steps, na.rm = TRUE), color = &#39;blue&#39;, hjust = -0.1))</code></pre>
+<p><img src="test_pa1_files/figure-html/unnamed-chunk-13-1.png" /><!-- --></p>
+<p>With imputed values:</p>
+<ul>
+<li><p>Mean increases from <strong>9354</strong> to <strong>10821</strong> steps</p></li>
+<li><p>Median increases from <strong>10395</strong> to <strong>11015</strong> steps</p></li>
+</ul>
+</div>
+<div id="are-there-differences-in-activity-patterns-between-weekdays-and-weekends" class="section level2">
+<h2><strong>5. Are there differences in activity patterns between weekdays and weekends?</strong></h2>
+<p>5.1 Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.</p>
+<pre class="r"><code>x_new &lt;- mutate(x_new, weekday.factor = ifelse(weekday %in% c(&quot;Saturday&quot;,&quot;Sunday&quot;),c(&#39;Weekend&#39;),c(&#39;Weekday&#39;)))
+x_new$weekday.factor &lt;- as.factor(x_new$weekday.factor)</code></pre>
+<p>5.2 Make a panel plot containing a time series plot (i.e. type = “l”) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).</p>
+<p>First, some data transformations</p>
+<pre class="r"><code>x3_new &lt;- group_by(x_new, weekday.factor, interval)
+x4_new &lt;- summarize(x3_new, total_steps = sum(steps, na.rm = TRUE), mean_steps = mean(steps, na.rm = TRUE))
+head(x4_new)</code></pre>
+<pre><code>## # A tibble: 6 x 4
+## # Groups:   weekday.factor [1]
+##   weekday.factor interval total_steps mean_steps
+##   &lt;fct&gt;             &lt;int&gt;       &lt;dbl&gt;      &lt;dbl&gt;
+## 1 Weekday               0         103     2.29  
+## 2 Weekday               5          20     0.444 
+## 3 Weekday              10           8     0.178 
+## 4 Weekday              15           9     0.2   
+## 5 Weekday              20           4     0.0889
+## 6 Weekday              25          70     1.56</code></pre>
+<p>Then, we plot</p>
+<pre class="r"><code>ggplot(data = x4_new) + 
+  geom_line(mapping = aes(x = interval, y = mean_steps, color = I(&#39;blue&#39;))) +
+  ggtitle(&quot;Time Series Chart&quot;) + 
+  facet_wrap(~ weekday.factor, nrow = 2) +
+  labs(x = &quot;Time Interval&quot;, y = &quot;Average # of Steps&quot;, subtitle = &quot;Average # of Steps by Time Interval&quot;)</code></pre>
+<p><img src="test_pa1_files/figure-html/unnamed-chunk-16-1.png" /><!-- --></p>
+<ul>
+<li><p><strong>On weekdays:</strong> there is more activity in **morning hours (around 8.35am).</p></li>
+<li><p><strong>On weekends:</strong> the acitivity is more spread out during day time.</p></li>
+</ul>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
