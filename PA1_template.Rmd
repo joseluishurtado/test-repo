@@ -1,0 +1,258 @@
+
+**Reproducible Research - Activity Monitoring Data**
+====================================================
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#
+
+This is the R Markdown file for the Project
+
+## **1. Loading and preprocessing the data**
+
+Load library that will be used throughout the code
+
+```{r}
+library(tidyverse)
+```
+
+1.1 Load the data (i.e. read.csv())
+
+```{r}
+x <- read.csv("activity.csv")
+head(x)
+```
+
+
+1.2  Preprocess the data
+
+```{r}
+x$date <- as.Date(x$date)# convert to Date
+str(x)
+```
+
+
+## **2.  What is the mean total number of steps taken per day?**
+
+2.1 Make a histogram of the total number of steps taken each day
+
+2.2 Calculate and report the *mean* and *median* total number of steps taken per day
+
+
+
+
+- The code below shows both the histogram as well as the mean and median
+
+- First, we apply some data transformations:
+
+```{r}
+x1 <- group_by(x,date)
+x2 <- summarize(x1, steps = sum(steps, na.rm = TRUE))
+head(x2)
+
+```
+
+- Then, we plot
+
+```{r}
+ggplot(data = x2, aes(x = steps, color = I('black'), fill = I('grey99')))+
+  geom_histogram(bins = 12) +
+  ggtitle("Histogram") +
+  labs(x = "Steps per Day", y = "Number of Days", subtitle = "Distribution of Number of Steps per Day") +
+  geom_vline(aes(xintercept = mean(steps, na.rm = TRUE), color = "red")) +
+  geom_text(mapping = aes(label = round(mean(steps, na.rm = TRUE),0),y = -1, x = mean(steps, na.rm = TRUE), color = 'red', hjust = 1.1)) +
+  geom_text(mapping = aes(label = "Mean", y = -0.3, x = mean(steps, na.rm = TRUE), color = 'red', hjust = 1.1)) +
+  geom_vline(aes(xintercept = median(steps, na.rm = TRUE), color = "blue")) +
+  geom_text(mapping = aes(label = round(median(steps, na.rm = TRUE),0),y = -1, x = median(steps, na.rm = TRUE), color = 'blue', hjust = -0.1)) +
+  geom_text(mapping = aes(label = "Median", y = -0.3, x = median(steps, na.rm = TRUE), color = 'blue', hjust = -0.1))
+
+```
+
+
+**Mean of steps taken each day:** 9354
+
+**Median of steps taken each day:** 10395
+
+
+
+
+## **3. What is the average daily activity pattern?**
+
+3.1 Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+3.2 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+
+First, some data transformations 
+
+```{r}
+x3 <- group_by(x,interval)
+x4 <- summarize(x3, total_steps = sum(steps, na.rm = TRUE), mean_steps = mean(steps, na.rm = TRUE))
+```
+
+
+Then, generating the time series plot 
+
+```{r}
+
+ggplot(data = x4) + 
+  geom_line(mapping = aes(x = interval, y = mean_steps, color = I('blue'))) +
+  ggtitle("Time Series Chart") + 
+  labs(x = "Time Interval", y = "Average # of Steps", subtitle = "Average # of Steps by Time Interval") +
+  geom_vline(aes(xintercept = interval[mean_steps == max(mean_steps)])) +
+  geom_text(mapping = aes(label = interval[mean_steps == max(mean_steps)],y = -8, x = interval[mean_steps == max(mean_steps)], hjust = 1.2)) +
+  geom_text(mapping = aes(label = "Interval", y = 0, x = interval[mean_steps == max(mean_steps)], hjust = 1.1))
+```
+
+
+The **5-minute interval** that contains the maximum number of steps (as shown in the chart) is the **8:35**
+
+
+## **4. Imputing Missing Values**
+
+4.1 Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
+```{r}
+sum(is.na(x$steps))
+
+```
+
+There are **2304** rows with missing values
+
+
+
+
+4.2 Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+First, we explore the data to see where the missing values appear to be
+
+```{r}
+s  <- split(x$steps, x$date)
+s1 <- aggregate(steps ~ date, data = x,  function(y) {sum(is.na(y))}, na.action = NULL)
+head(s1,10)
+```
+
+Based on that, missing values correspond to entire days. So, to impute missing values:
+
+1. First, I identify which weekday correspond to the missing value
+
+2. Then, I obtain the average for same weekdays without missing values
+
+3. Finally, I create a new dataframe, imputing the resulting value for the corresponding weekday and interval on those ones with null values
+
+
+
+
+4.3 Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+
+```{r}
+x$weekday <- weekdays(x$date)
+x_notna <- subset(x, !is.na(x$steps))
+x_notna <- group_by(x_notna, weekday, interval) %>%
+  summarize(steps = round(mean(steps),0))
+
+
+x_new <- left_join(x, x_notna, by = c("interval", "weekday")) %>%
+  mutate(steps.x = ifelse(is.na(steps.x),steps.y, steps.x)) %>%
+  select(-(steps.y)) %>%
+  rename(steps = steps.x)
+
+head(x_new)
+```
+
+
+
+
+4.4 Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps? 
+
+
+With the new data frame, I proceed to do the data transformations before plotting
+
+```{r}
+x1_new <- group_by(x_new,date)
+x2_new <- summarize(x1_new, steps = sum(steps, na.rm = TRUE))
+head(x2_new)
+```
+
+Now we plot
+
+```{r}
+ggplot(data = x2_new, aes(x = steps, color = I('black'), fill = I('grey99')))+
+  geom_histogram(bins = 12) +
+  ggtitle("Histogram") +
+  labs(x = "Steps per Day", y = "Number of Days", subtitle = "Distribution of Number of Steps per Day - With Imputed Values") +
+  geom_vline(aes(xintercept = mean(steps, na.rm = TRUE), color = "red")) +
+  geom_text(mapping = aes(label = round(mean(steps, na.rm = TRUE),0),y = -1, x = mean(steps, na.rm = TRUE), color = 'red', hjust = 1.1)) +
+  geom_text(mapping = aes(label = "Mean", y = -0.3, x = mean(steps, na.rm = TRUE), color = 'red', hjust = 1.1)) +
+  geom_vline(aes(xintercept = median(steps, na.rm = TRUE), color = "blue")) +
+  geom_text(mapping = aes(label = round(median(steps, na.rm = TRUE),0),y = -1, x = median(steps, na.rm = TRUE), color = 'blue', hjust = -0.1)) +
+  geom_text(mapping = aes(label = "Median", y = -0.3, x = median(steps, na.rm = TRUE), color = 'blue', hjust = -0.1))
+```
+
+
+With imputed values:
+
+- Mean increases from **9354** to **10821** steps
+
+- Median increases from **10395** to **11015** steps
+
+
+
+
+## **5.  Are there differences in activity patterns between weekdays and weekends?**
+
+5.1 Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+
+```{r}
+x_new <- mutate(x_new, weekday.factor = ifelse(weekday %in% c("Saturday","Sunday"),c('Weekend'),c('Weekday')))
+x_new$weekday.factor <- as.factor(x_new$weekday.factor)
+```
+
+
+5.2 Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+
+First, some data transformations
+
+```{r}
+x3_new <- group_by(x_new, weekday.factor, interval)
+x4_new <- summarize(x3_new, total_steps = sum(steps, na.rm = TRUE), mean_steps = mean(steps, na.rm = TRUE))
+head(x4_new)
+```
+
+
+Then, we plot
+
+```{r}
+ggplot(data = x4_new) + 
+  geom_line(mapping = aes(x = interval, y = mean_steps, color = I('blue'))) +
+  ggtitle("Time Series Chart") + 
+  facet_wrap(~ weekday.factor, nrow = 2) +
+  labs(x = "Time Interval", y = "Average # of Steps", subtitle = "Average # of Steps by Time Interval")
+```
+
+- **On weekdays:** there is more activity in **morning hours (around 8.35am). 
+
+- **On weekends:** the acitivity is more spread out during day time.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
